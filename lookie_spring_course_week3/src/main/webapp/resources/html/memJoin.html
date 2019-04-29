@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+	
+	<h1>회원가입페이지</h1>
+	<form action="/le/member/memJoin" method="post">
+		ID : <input type="text" name="memId" size="20"><br/>
+		PW : <input type="password" name="memPw" size="20"><br/>
+		E-MAIL : <input type="text" name="memMail" size="50"><br/>
+		PHONE : <input type="text" name="memPhone1" size="5"> -
+				<input type="text" name="memPhone2" size="5"> -
+				<input type="text" name="memPhone3" size="5"><br/>
+		
+		<!-- checkbox는 배열로 받는다 -->
+		<input type="submit" value="회원가입"><br/>
+		<input type="reset" value="다시입력"><br/>
+	
+	</form>
+	<!--post방식으로 서버로 넘어가면 핸들러 매핑이 컨트롤러를 찾고 핸들러 어댑터가 컨트롤러의 알맞는 메소드를 찾는다. -->
+	
+	<a href="login.html">로그인</a>&nbsp;
+	<a href="index.html">메인으로 이동.</a>
+	
+	
+</body>
+</html>
