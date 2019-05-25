@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.java.dao.Mapper">
+	<select id="read" resultType="com.java.vo.MemberVO">
+		select userId, userPw, userName,
+		userAge from profile where userId =
+		#{userId} and userPw = #{userPw}
+	</select>
+
+	<insert id="create">
+		insert into profile(userId, userPw, userName,
+		userAge) values(#{userId},
+		#{userPw}, #{userName}, #{userAge});
+	</insert>
+
+	<!-- id기준으로 삭제. -->
+	<delete id="delete">
+		delete from profile where userId = #{userId}
+	</delete>
+	
+	<!-- id기준으로 변경. -->
+	<update id="modify" parameterType="com.java.vo.MemberVO">
+		update profile set userPw = #{userPw}, userName = #{userName}, userAge = #{userAge} where userId = #{userId}
+	</update>
+	
+	
+	<select id="readAll" resultType="com.java.vo.MemberVO">
+		select * from profile order by userId;
+	</select>
+	
+</mapper>

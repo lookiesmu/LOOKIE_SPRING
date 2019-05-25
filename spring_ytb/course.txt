@@ -1,0 +1,151 @@
+*****용어 개념 정리*****
+
+@Controller
+Controller : 클라이언트의 Request를 처리한 뒤 결과를 DispatcherServlet에게 리턴한다.
+컨트롤러에서 직접 수행하는 동작은 없어야하며 마치 리모컨처럼 서비스를 호출하거나 다른 로직을 호출해야한다.
+
+@Service
+Serivice : 서비스는 비즈니스 로직이 들어가는 부분이다. 컨트롤러가 Request를 받으면 적절한 서비스에게 전달하고,
+전달받은 서비스는 비즈니스 로직을 처리한다. DAO로 DB에 접근하고, DTO로 데이터를 전달받은 다음 처리한다.
+
+DAO : Data Access Object. DB를 접근, 조작하는 객체
+
+DTO : Data Transfer Object. 계층간 데이터 교환을 위한 자바beans 이다.(getter 와 setter 로 이루어짐)
+DB에서 데이터를 얻어 Service나 Controller 등으로 보낼때 사용하는 객체이다.
+
+VO : Value Object. vo는 dto와 비슷한 개념이지만 read only의 속성을 갖는다.
+
+dao와 service를 자동주입(@Autowired) 해주어야한다.
+Controller <-> service <-> DAO <-> DB
+		   DTO         DTO     DTO
+		   
+<------------------------------->
+ 		     	VO
+ 			
+Mapper : mapper.xml에 sql문을 작성하여 사용할 수 있다.
+
+JDBC : Java DataBase Connectivity. DB와 연결하기 위한 자바 인터페이스이다.
+
+DBCP : DataBase Connection Pool. DB와 Connection을 맺고 있는 객체를 관리하기 위한 커넥션 풀이다.
+- 커넥션풀을 생성하여 거기서 DB 데이터를 쉽게 꺼내고 조작할 수 있도록 한다.
+- 한번 오픈한 커넥션을 Close하지 않고 Pool이라 칭해지는 Connection을 관리하는 곳에서 오픈된 상태의 커넥션을 가지고 있다가
+Connection이 필요한 곳에 이미 오픈된 Connection을 사용할 수 있도록 할당해주고, 작업이 끝나면 다시 Pool에서 관리하는것.
+
+Java에서 DB와 연결하기 위해서는 JDBC를 필요로 하며, JDBC를 이용해 생성한 Connection을 효율적으로 활용하기 위해 Connection 객체를 관리하는것이
+DBCP의 개념이다.(둘 중 하나의 개념이 아님)
+
+
+myBatis : DB를 손쉽게 사용하도록 자동으로 관리해줌. 코드가 굉장히 많이 감축되는 효과를 볼 수 있음.
+PreparedStatement, Connection, ResultSet을 자동으로 해준다.
+
+Jackson-JSON : 안드로이드와 서버(springFramework)를 연동(주고받기위한?)하기 위한 라이브러리.
+Jackson은 JSON데이터 구조를 처리해주는 라이브러리.
+
+Postman : Postman은 서버에서 요청하고 그에대한 응답에 대한 흐름을 View(HTML,JSP)없이 볼 수 있게하는 툴이다.
+포스트맨을 사용하는 이유는 안드로이드(View제공)와 계속해서 통신하면서 서버의 흐름을 보는것은 비효율적이기 때문이다. 
+HTML이나 JSP를 따로 만들지 않아도 전체적인 흐름을 보여주기 때문에 사용한다.
+
+
+---------------------------------------------
+*****스프링에서 mybatis로 mysql 데이터베이스 조작하기*****
+
+0. web.xml에 UTF-8 필터 코드 추가. DB생성.
+
+1. pom.xml 환경설정
+- pom.xml java-version을 1.8로 수정. 프로젝트 properties-> project Facets -> java를 1.8로 수정. 
+-> pom.xml에 dependency추가 (mysql, mybatis, mybatis-spring,jdbc,test)
+-> 프로젝트 run As 했을 때 정상 실행 되면 환경설정 된것임.
+
+2. root-context.xml 설정
+->하단 namespaces 탭 클릭 aop, beans, context, jdbc, mybatis-spring 클릭.
+
+* root-context.xml에 DB연결 설정하기.
+DB접속을 위한 설정정보 입력.
+- DataSource : db연결 driver, url, username, password (db정보)
+
+myBatis사용을 위한 sqlsessionfactory 커넥션추가
+- SqlSessionFactory : mapper.xml 파일의 위치, dataSource와 연결
+
+- Mapper : mapper 인터페이스 위치, SessionFactory와 연결
+- mybatis-spring : 프로젝트가 실행될 때  dao를 읽을 수 있도록 작성.
+
+- root-context 파일에 코드추가.
+<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource"><!--JDBC라이브러리 위치설정 -->
+			<property name="driverClassName" value="com.mysql.jdbc.Driver"></property>
+			<property name="url" value="jdbc:mysql://localhost:3306/db이름"></property>
+			<property name="username" value="root"></property>
+			<property name="password" value="root"></property>
+		</bean>
+		<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean"><!--DB연결 및 SQL 사용을 위한 객체 생성. -->
+			<property name="dataSource" ref="dataSource"></property><!-- 상단의 DataSource 위치 참조.-->
+			<property name="mapperLocations" value="classpath:mappers/**/*Mapper.xml"></property><!--sql 연동위치 설정(mapper) -->
+		</bean>
+		<bean id="Mapper" class="org.mybatis.spring.mapper.MapperFactoryBean"><!--DAO 인터페이스 사용을 위한 객체 생성. -->
+			<property name="mapperInterface" value="com.java.dao.Mapper"></property>		
+			<property name="sqlSessionFactory" ref="sqlSessionFactory"></property>
+		</bean>
+		<mybatis-spring:scan base-package="com.java.dao"/>
+
+(3. 일단생략).
+// src/main/java아래에 dao 패키지 생성 -> dao 패키지안에 Mapper인터페이스 작성하여 xml과 연결.
+// -> src/main/resources아래에  mappers폴더 생성 -> mappers폴더 안에 mappers.xml(mapper인터페이스에 있는 함수에 실제 sql문 저장)생성.
+
+4. src/main/resources 안에 mybatis-config.xml 생성. 코드추가
+Mybatis 설정파일임을 명시하기 위한 DTD선언 
+
+5. src/main/resources 안에 mappers 폴더 생성 후 안에 Mapper.xml 생성. 코드추가
+sql쿼리전송을 위한 Mapper 하우스 짓기.
+mapper임을 명시하기 위한 DTD선언
+
+6. VO생성
+-com.java.lec 우클릭 -> com.java.vo 패키지 생성 -> 생성된 패키지 안에 VO객체(클래스) 생성-> DB 변수 입력 -> setter getter(변수캡슐화) -> toString메소드 생성
+
+7. DAO와 연동하기 위한 sql문 작성
+- src/main/resources/mappers/Mapper.xml 에 sql문을 작성한다.
+- sql문에 연산자가 들어갈 경우 <![CDATA[ sql문 ]]> 로 감싸준다.
+
+8. DAO작성.
+- src/main/java 아래에 com.java.dao 패키지 생성
+- dao 패키지 아래에 IMemberDAO 인터페이스 생성.
+인터페이스 안에 mapper.xml 에 작성하였던 sql 문을 불러오기 위한 메소드를 작성한다.
+단 메소드이름은 mapper.xml에서 sql문을 작성하였을 때 id와 동일하게 작성한다.
+- dao 패키지 아래에 MemberDAO 클래스 생성 IMemberDAO 인터페이스 implements 후 메소드 작성.
+
+- servlet-context.xml 베이스패키지 수정. 
+<context:component-scan base-package="com.java.lec"/>을 <context:component-scan base-package="com.java"/> 로 수정.
+
+9. Service 생성.
+- src/main/java 아래에 com.java.service 패키지생성.
+- service패키지 아래에 IMemberService 인터페이스 생성.
+인터페이스 안에는 controller에서 요청될 service 메소드를 작성한다. (dao에서 작성한 메소드명과 다를수 있음)
+client request -> controller -> service -> dao 메소드호출
+
+- service 패키지 아래에 MemberService 클래스 생성. IMemberService 인터페이스 implements 후 메소드 작성.
+@service 어노테이션 입력
+service 메소드의 return 값에 나오는 메소드는 dao의 메소드를 리턴한다. 
+
+--------------------------
+*****Jackson-JSON 사용하기*****
+pom.xml에 jackson-mapper-asl 디펜던시를 추가한다.
+@ResponseBody 어노테이션을 컨트롤러의 메소드 타입 앞에 작성한다.
+@ResponseBody란 return 되는 값은 view를 통해서 출력되는것이 아니라 HTTP Response Body에 직접 쓰여진다.
+
+ex)
+	@Autowired
+	private Mapper mapper;
+
+	@RequestMapping(method = RequestMethod.POST, value = "/json")
+	public @ResponseBody MemberVO search() {		
+		return mapper.read("eunbee", "1234");
+	}
+- postman에서 post/get 형식으로 Controller의 메소드에 매핑된 url을 입력한후 body -> raw에서 json 타입으로 send를 보내면 db에 있는 내용이 postmon에 나타난다.
+- json을 통하여 안드로이드와 통신할 수 있다. 
+
+--------------------------
+*****spring 기본실행 흐름*****
+- 서버가 실행되면 web.xml이 최초구동 -> root-context와 servlet-context.xml를 읽음 -> HomeController 내부 메소드실행 -> home.jsp 출력(HomeController의 리턴값이 home.jsp).
+
+
+
+
+

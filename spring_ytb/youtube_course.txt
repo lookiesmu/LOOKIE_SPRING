@@ -1,0 +1,62 @@
+스프링에서 mybatis로 mysql 데이터베이스 조작하기
+
+0. web.xml에 UTF-8 필터 코드 추가.
+
+1. 스프링 4 프로젝트로 변경 (pom.xml,web.xml 내용 고치기)
+- 프로젝트 우클릭 -> property -> Resource -> 인코딩 Other -> UTF-8로 변경 -> Project Facets -> Dynamic Web Module, Java 버전을 각각 3.0 1.8 으로변경 -> Targeted Runtimes -> 실행할 서버를 톰캣 9버전으로 선택 
+- 환경설정코드 pom.xml, web.xml 깃허브 코드참고
+- 프로젝트 우클릭 -> Maven -> Update Project -> Force Update of Snapshosts/Releases 체크 -> OK
+프로젝트가 정상적으로 실행되면 스프링 4 설정완료. 
+
+
+2. pom.xml에 dependency추가 (mysql, mybatis, mybatis-spring,jdbc,test)
+			junit = 4.12 로 변경
+			
+- pom.xml 밑에 dependencies클릭
+- 디펜던시추가 Add를 누른다.(mysql, mybatis, mybatis-spring, jdbc, test)를 입력해서 디펜던시 추가.
+- 버전이 4.3.3.RELEASE 와 같은경우는 숫자가아닌 spring-context의 버전인 ${org.springframework-version} 상수로 바까준다.			
+- Maven에서 강제로 프로젝트를 업데이트 시킨다.
+			
+			
+3. root-context 파일에 sqlSessionFactory, Mapper, dataSource(db접속정보) 설정
+
+->하단 namespaces 탭 클릭 aop, beans, context, jdbc, mybatis-spring 클릭.
+
+- src/main.java 아래에 com.java.dao 패키지생성 그밑에 Mapper.java 인터페이스 생성
+- scr/main/resources 폴더 아래에 mappers 폴더 생성 그 아래에 Mapper.xml 파일 생성.
+
+- sql->
+	create database spring_mybatis;
+	
+	create table test(
+		memberId varchar(20),
+		memberPw varchar(20),
+		primary key(memberId));
+
+- root-context 파일의 아래 namespaces 클릭후 AOP, mybatis-spring을 클릭	
+- root-context 파일에 코드추가.
+<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+			<property name="driverClassName" value="com.mysql.jdbc.Driver"></property>
+			<property name="url" value="jdbc:mysql://localhost:3306/spring_mybatis"></property><!-- spring_mybatis는 mysql의 데이터베이스이름. -->
+			<property name="username" value="root"></property>
+			<property name="password" value="root"></property>
+		</bean>
+		<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+			<property name="dataSource" ref="dataSource"></property>
+			<property name="mapperLocations" value="classpath:mappers/**/*Mapper.xml"></property>
+		</bean>
+		<bean id="Mapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+			<property name="mapperInterface" value="com.java.dao.Mapper"></property>		
+			<property name="sqlSessionFactory" ref="sqlSessionFactory"></property>
+		</bean>
+		<mybatis-spring:scan base-package="com.java.dao"/>
+
+4. dao 패키지 작성, Mapper 인터페이스 생성
+
+5. xml mapper파일 생성
+
+- mybatis 홈페이지 접속 -> 시작하기 -> 매핑된 sql 구문 살펴보기에 있는 코드 복사 .
+- mapper.xml에 복사
+- 코드수정.
+
+6. controller에서 테스트 컨트롤러에 DAO를 @AutoWired해준다.
