@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.java.mappers.BoardMapper">
+ 
+    <!-- 게시판 추가하기 -->
+    <insert id="create">
+ 		insert into board (bTitle,bContent,bWriter,bDate) values (#{bTitle},#{bContent},#{bWriter},SYSDATE())
+    </insert>
+    
+    <!-- 게시판 리스트보기 -->
+    <select id="listAll" resultType="com.java.vo.BoardVO">
+    <![CDATA[
+        select * from board 
+        order by bNo DESC
+    ]]>
+    </select>
+    
+    <!-- 게시판 상세보기 -->
+    <select id="read" resultType="com.java.vo.BoardVO">
+        select * from board where bNo = #{bNo}
+    </select>
+    
+    <!-- 게시판 조회수 -->
+    <select id="readcount" resultType="com.java.vo.BoardVO">
+        update board set bCount = bCount+1 where bNo = #{bNo}
+    </select>
+    
+ 
+    <!-- 게시판 삭제하기 -->
+    <delete id="delete">
+        delete from board where bNo = #{bNo}
+    </delete>
+    
+    <!-- 게시판 수정하기 -->
+    <update id="update">
+        update board set bTitle=#{bTitle}, bContent=#{bContent} where bNo = #{bNo}
+    </update>
+ 
+</mapper>
